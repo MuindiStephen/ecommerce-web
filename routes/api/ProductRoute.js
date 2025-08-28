@@ -64,6 +64,35 @@ router.post('/', async(req, res) => {
 })
 
 // Updating product
+router.put('/:id', async (req, res) => {
+    try {
+        const updatedProduct = await Product.updateOne(
+            { _id: req.params.id },
+            {
+                name: req.body.name,
+                description: req.body.description,
+                price: req.body.price,
+                quantity: req.body.quantity,
+                photo: req.body.photo
+            },
+            { upsert: true } // create if not found
+        );
+
+        if (updatedProduct.matchedCount === 0 && updatedProduct.upsertedCount === 0) {
+            return res.status(404).json({ success: false, message: "Product not found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Product updated successfully",
+            result: updatedProduct
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 
 // Deleting a product
 router.delete('/:id', async(req, res) => {
@@ -73,7 +102,8 @@ router.delete('/:id', async(req, res) => {
         });
         if(response.deletedCount == 0) {
             return res.status(404).json({
-                message: 'Product not found'
+                message: 'Product not found',
+                status: "1"
             })
         }
         res.json({ 
